@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>批量删除重复第三次的单词</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 20px auto; padding: 20px; }
+        .container { margin: 20px 0; }
+        textarea { width: 100%; height: 150px; margin: 10px 0; }
+        button { padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; margin: 5px; }
+        #result { white-space: pre-wrap; padding: 10px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <h2>批量处理重复单词工具</h2>
+    
+    <!-- 批量导入 -->
+    <div class="container">
+        <input type="file" id="fileInput" accept=".txt">
+        <button onclick="document.getElementById('fileInput').click()">上传文本文件</button>
+    </div>
+
+    <!-- 单文本处理 -->
+    <div class="container">
+        <textarea id="input" placeholder="或直接粘贴文本..."></textarea>
+        <button onclick="processText()">处理文本</button>
+    </div>
+
+    <!-- 结果展示与导出 -->
+    <div class="container">
+        <button onclick="exportText()" id="exportBtn" disabled>导出结果</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let processedContent = "";
+
+        // 处理单行文本的函数
+        function processLine(line) {
+            const words = line.split(/\s+/);
+            const countMap = {};
+            const result = [];
+            
+            words.forEach(word => {
+                const key = word.toLowerCase().replace(/[^\w]/g, '');
+                countMap[key] = (countMap[key] || 0) + 1;
+                if (countMap[key] <= 2) result.push(word);
+            });
+            
+            return result.join(' ');
+        }
+
+        // 处理批量文本
+        function processText() {
+            const input = document.getElementById('input').value;
+            processedContent = input.split('\n').map(line => processLine(line)).join('\n');
+            document.getElementById('result').textContent = processedContent;
+            document.getElementById('exportBtn').disabled = false;
+        }
+
+        // 文件读取处理
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const content = e.target.result;
+                document.getElementById('input').value = content;
+                processText();
+            };
+            
+            reader.readAsText(file);
+        });
+
+        // 导出结果文件
+        function exportText() {
+            const blob = new Blob([processedContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `processed_${new Date().getTime()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
